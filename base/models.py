@@ -17,7 +17,7 @@ class Room(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(
         null=True, blank=True)  # This field can't be blank
-    # participants =
+    participants = models.ManyToManyField(User, related_name='participants', blank=True)
     # Takes a snapshot everytime the model is called
     updated = models.DateTimeField(auto_now=True)
     # Takes a snapshot once only or if this instance is created in initial
