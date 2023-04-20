@@ -17,7 +17,8 @@ class Room(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(
         null=True, blank=True)  # This field can't be blank
-    participants = models.ManyToManyField(User, related_name='participants', blank=True)
+    participants = models.ManyToManyField(
+        User, related_name='participants', blank=True)
     # Takes a snapshot everytime the model is called
     updated = models.DateTimeField(auto_now=True)
     # Takes a snapshot once only or if this instance is created in initial
@@ -37,6 +38,10 @@ class Message(models.Model):
     body = models.TextField()
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # The '-' will order the latest updated or created post from the database
+        ordering = ['-updated', '-created']
 
     def __str__(self):
         # This means that the value will return only 50 characters

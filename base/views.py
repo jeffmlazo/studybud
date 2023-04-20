@@ -77,8 +77,11 @@ def home(request):
     )
     topics = Topic.objects.all()
     room_count = rooms.count()
+    # Browse topics with filtering features
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
 
-    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count}
+    context = {'rooms': rooms, 'topics': topics,
+               'room_count': room_count, 'room_messages': room_messages}
     return render(request, 'base/home.html', context)
 
 
@@ -88,7 +91,7 @@ def room(request, pk):
     message is from the model Message class from the models.py.
     NOTE: That the message is in the lowercase format
     """
-    room_messages = room.message_set.all().order_by('-created')
+    room_messages = room.message_set.all()
     participants = room.participants.all()
     if request.method == 'POST':
         # This method will create or update the value of the field
@@ -105,13 +108,25 @@ def room(request, pk):
     return render(request, 'base/room.html', context)
 
 
+def userProfile(request, pk):
+    user = User.objects.get(id=pk)
+    rooms = user.room_set.all()
+    room_messages = user.message_set.all()
+    topics = Topic.objects.all()
+    context = {'user': user, 'rooms': rooms,
+               'room_messages': room_messages, 'topics': topics}
+    return render(request, 'base/profile.html', context)
+
+
 @login_required(login_url='login')
 def createRoom(request):
     form = RoomForm()
     if request.method == 'POST':
         form = RoomForm(request.POST)
         if form.is_valid():
-            form.save()
+            room = form.save(commit=False)
+            room.host = request.user
+            room.save()
             return redirect('home')
 
     context = {'form': form}
@@ -147,6 +162,7 @@ def deleteRoom(request, pk):
         room.delete()
         return redirect('home')
     return render(request, 'base/delete.html', {'object': room})
+
 
 @login_required(login_url='login')
 def deleteMessage(request, pk):
